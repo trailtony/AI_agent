@@ -1,16 +1,19 @@
 from typing import List
 import json
 import random
+import os
 import string
 from datetime import datetime, timedelta
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
+from getpass import getpass
 
 from dotenv import load_dotenv
 
 load_dotenv()
+api_key = getpass(os.getenv("OPENAI_API_KEY"))
 
 
 # -------- Tools --------
@@ -95,7 +98,9 @@ def generate_sample_users(
 
 TOOLS = [write_json, read_json, generate_sample_users]
 
-llm = ChatOpenAI(model="gpt-4", temperature=0)
+# llm = GoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
+llm = GoogleGenerativeAI(model="gemini-2.0-flash-exp", google_api_key=api_key)
+
 
 SYSTEM_MESSAGE = (
     "You are DataGen, a helpful assistant that generates sample data for applications. "
