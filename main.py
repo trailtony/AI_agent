@@ -1,43 +1,43 @@
 from typing import List
 import json
 import random
-import os
 import string
 from datetime import datetime, timedelta
-from langchain_google_genai import GoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
-from getpass import getpass
 
 from dotenv import load_dotenv
 
 load_dotenv()
-api_key = getpass(os.getenv("OPENAI_API_KEY"))
 
 
 # -------- Tools --------
 @tool
 def write_json(filepath: str, data: dict) -> str:
-    """Write a Python dictionary to a JSON file with pretty formatting."""
+    """Write a Python dictionary as JSON to a file with pretty formatting."""
     try:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return f"Successfully wrote JSON data to '{filepath}' ({len(json.dumps(data))} characters)."
     except Exception as e:
-        return f"Failed to write JSON data to '{filepath}': {e}"
-    
+        return f"Error writing JSON: {str(e)}"
+
 
 @tool
 def read_json(filepath: str) -> str:
-    """Read a JSON file and return its contents as a string."""
+    """Read and return the contents of a JSON file."""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        return json.dumps(data, indent=2, ensure_ascii=False)
+        return json.dumps(data, indent=2)
+    except FileNotFoundError:
+        return f"Error: File '{filepath}' not found."
+    except json.JSONDecodeError as e:
+        return f"Error: Invalid JSON in file - {str(e)}"
     except Exception as e:
-        return f"Failed to read JSON data from '{filepath}': {e}"
-
+        return f"Error reading JSON: {str(e)}"
 
 
 @tool
@@ -98,9 +98,7 @@ def generate_sample_users(
 
 TOOLS = [write_json, read_json, generate_sample_users]
 
-# llm = GoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
-llm = GoogleGenerativeAI(model="gemini-2.0-flash-exp", google_api_key=api_key)
-
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 SYSTEM_MESSAGE = (
     "You are DataGen, a helpful assistant that generates sample data for applications. "
